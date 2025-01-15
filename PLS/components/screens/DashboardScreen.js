@@ -7,6 +7,8 @@ const DashboardScreen = ({ navigation }) => {
   const { user, logout, loadingUserData } = useAuth();  // Access user and logout from AuthContext
   const [loading, setLoading] = useState(false);  // State for handling loading
   const [userProgress, setUserProgress] = useState(0);  // Track user progress in courses
+  const [personalizedCourses, setPersonalizedCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     if (loadingUserData) {
@@ -14,8 +16,19 @@ const DashboardScreen = ({ navigation }) => {
     } else {
       setLoading(false);  // Set loading to false once user data is fetched
     }
-    // Set user progress dynamically (example: fetching progress from Firestore)
-    setUserProgress(user?.learningProgress || 0); // Assuming user has learningProgress stored in their data
+
+    // Set user progress dynamically
+    setUserProgress(user?.learningProgress || 0);  // Assuming user has learningProgress stored in their data
+
+    // Fetch personalized courses based on user's preferences/interests
+    if (user?.interests) {
+      setPersonalizedCourses(user.interests);
+    }
+
+    // Fetch categories based on the user's preferences or system suggestion
+    const predefinedCategories = ['Data Structures', 'Algorithms', 'Software Development', 'System Design', 'Database Management', 'Cloud Computing', 'AI & ML'];
+    setCategories(predefinedCategories);  // We can later replace this with dynamic categories fetched from Firestore
+
   }, [loadingUserData, user]);
 
   const handleLogout = async () => {
@@ -64,7 +77,7 @@ const DashboardScreen = ({ navigation }) => {
       <View style={styles.categoriesContainer}>
         <Text style={styles.sectionTitle}>Explore Categories</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories}>
-          {['Data Structures', 'Algorithms', 'Software Development', 'System Design', 'Database Management', 'Cloud Computing', 'AI & ML'].map((category, index) => (
+          {categories.map((category, index) => (
             <TouchableOpacity key={index} style={styles.categoryCard}>
               <Text style={styles.categoryText}>{category}</Text>
             </TouchableOpacity>
@@ -76,10 +89,10 @@ const DashboardScreen = ({ navigation }) => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recommended for You</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {user?.interests?.map((interest, index) => (
+          {personalizedCourses.map((course, index) => (
             <View key={index} style={styles.card}>
-              <Text style={styles.cardTitle}>{interest.courseName}</Text>
-              <Text style={styles.cardInfo}>{interest.details}</Text>
+              <Text style={styles.cardTitle}>{course.courseName}</Text>
+              <Text style={styles.cardInfo}>{course.details}</Text>
               <TouchableOpacity style={styles.startJourneyBtn}>
                 <Text style={styles.startJourneyText}>Start Journey</Text>
               </TouchableOpacity>
@@ -108,7 +121,7 @@ const DashboardScreen = ({ navigation }) => {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Become a Full Stack Developer</Text>
-            <Text style={styles.cardInfo}> 12 Lessons</Text>
+            <Text style={styles.cardInfo}>12 Lessons</Text>
             <TouchableOpacity style={styles.startJourneyBtn}>
               <Text style={styles.startJourneyText}>Start Learning</Text>
             </TouchableOpacity>
@@ -184,6 +197,7 @@ const styles = StyleSheet.create({
   },
   categories: {
     flexDirection: 'row',
+    flexWrap: 'wrap',  // This will allow the items to wrap within the container
   },
   categoryCard: {
     backgroundColor: '#fff',
